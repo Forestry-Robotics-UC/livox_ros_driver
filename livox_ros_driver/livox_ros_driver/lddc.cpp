@@ -39,6 +39,22 @@
 #include "lds_lidar.h"
 #include "lds_lvx.h"
 
+// Tixiao - added
+#include <iostream>
+struct PointXYZIRT
+{
+    PCL_ADD_POINT4D
+    PCL_ADD_INTENSITY;
+    uint16_t ring;
+    float time;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT (PointXYZIRT,
+    (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
+    (uint16_t, ring, ring) (float, time, time)
+)
+pcl::PointCloud<PointXYZIRT>::Ptr tixiao_cloud_out(new pcl::PointCloud<PointXYZIRT>());
+
 namespace livox_ros {
 
 /** Lidar Data Distribute Control--------------------------------------------*/
@@ -372,6 +388,16 @@ void Lddc::FillPointsToCustomMsg(livox_ros_driver::CustomMsg& livox_msg, \
     point.line = point_xyzrtl->line;
     ++point_xyzrtl;
     livox_msg.points.push_back(point);
+
+    // Tixiao - added 
+    PointXYZIRT p;
+    p.x = point.x;
+    p.y = point.y;
+    p.z = point.z;
+    p.intensity = point.reflectivity;
+    p.ring = point.line;
+    p.time = point.offset_time / 1000000000.0;
+    tixiao_cloud_out->push_back(p);
   }
 }
 
@@ -471,6 +497,14 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
           livox_msg);
     }
   }
+
+  // Tixiao - added  
+  sensor_msgs::PointCloud2 cloud_temp;
+  pcl::toROSMsg(*tixiao_cloud_out, cloud_temp);
+  cloud_temp.header = livox_msg.header;
+  static ros::Publisher pub_tixiao_cloud = cur_node_->advertise<sensor_msgs::PointCloud2> ("/points_raw", 10);
+  pub_tixiao_cloud.publish(cloud_temp);
+  tixiao_cloud_out->clear();
 
   if (!lidar->data_is_pubulished) {
     lidar->data_is_pubulished = true;
