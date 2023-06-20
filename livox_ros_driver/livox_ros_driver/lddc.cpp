@@ -488,7 +488,7 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
     ++published_packet;
   }
 
-  ros::Publisher *p_publisher = Lddc::GetCurrentPublisher(handle);
+  /*ros::Publisher *p_publisher = Lddc::GetCurrentPublisher(handle);
   if (kOutputToRos == output_type_) {
     p_publisher->publish(livox_msg);
   } else {
@@ -496,13 +496,13 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
           livox_msg);
     }
-  }
+  }*/
 
   // Tixiao - added  
   sensor_msgs::PointCloud2 cloud_temp;
   pcl::toROSMsg(*tixiao_cloud_out, cloud_temp);
   cloud_temp.header = livox_msg.header;
-  static ros::Publisher pub_tixiao_cloud = cur_node_->advertise<sensor_msgs::PointCloud2> ("/points_raw", 10);
+  static ros::Publisher pub_tixiao_cloud = cur_node_->advertise<sensor_msgs::PointCloud2> ("/livox/lidar", 10);
   pub_tixiao_cloud.publish(cloud_temp);
   tixiao_cloud_out->clear();
 
