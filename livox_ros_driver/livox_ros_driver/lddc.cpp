@@ -501,6 +501,7 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
   // Tixiao - added  
   sensor_msgs::PointCloud2 cloud_temp;
   pcl::toROSMsg(*tixiao_cloud_out, cloud_temp);
+  cloud_temp.header = livox_msg.header;
   cloud_temp.header = ros::Time::now();
   static ros::Publisher pub_tixiao_cloud = cur_node_->advertise<sensor_msgs::PointCloud2> ("/livox/lidar", 10);
   pub_tixiao_cloud.publish(cloud_temp);
